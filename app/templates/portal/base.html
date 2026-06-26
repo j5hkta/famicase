@@ -53,8 +53,10 @@
             <i class="bi bi-clipboard2-check{{ '-fill' if request.endpoint == 'portal.mis_trabajos' }}"></i>
             <span>Trabajos</span>
         </a>
-        <a href="{{ url_for('portal.solicitar_trabajo') }}" class="pn-center" title="Solicitar trabajo">
-            <i class="bi bi-plus-lg"></i>
+        <a href="{{ url_for('portal.tarifas') }}"
+           class="pn-center {{ 'pn-center-active' if request.endpoint == 'portal.tarifas' }}"
+           title="Ver tarifas">
+            <i class="bi bi-tag"></i>
         </a>
         <a href="{{ url_for('portal.mi_saldo') }}"
            class="pn-item {{ 'active' if request.endpoint == 'portal.mi_saldo' }}">

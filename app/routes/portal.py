@@ -133,49 +133,13 @@ def mis_trabajos():
     )
 
 
-@portal_bp.route('/solicitar', methods=['GET', 'POST'])
+@portal_bp.route('/tarifas')
 @portal_login_required
-def solicitar_trabajo():
+def tarifas():
     o = get_odontologo_actual()
-    tipos = TipoTrabajo.query.order_by(TipoTrabajo.nombre).all()
-    hoy = date.today().isoformat()
-
-    if request.method == 'POST':
-        try:
-            tipo_id = int(request.form['tipo_trabajo_id'])
-            fecha_pedido = date.fromisoformat(request.form['fecha_pedido'])
-            fecha_entrega_str = request.form.get('fecha_entrega_estimada', '')
-            fecha_entrega = date.fromisoformat(fecha_entrega_str) if fecha_entrega_str else None
-            num_piezas_str = request.form.get('num_piezas', '')
-            num_piezas = int(num_piezas_str) if num_piezas_str else None
-            precio_str = request.form.get('precio', '')
-            precio = float(precio_str) if precio_str else 0.0
-
-            codigo = Trabajo.generar_codigo(fecha_pedido.year)
-
-            hora_acordada = request.form.get('hora_acordada', '').strip() or None
-
-            t = Trabajo(
-                codigo=codigo,
-                odontologo_id=o.id,
-                tipo_trabajo_id=tipo_id,
-                paciente=request.form.get('paciente', '').strip() or None,
-                precio=precio,
-                fecha_pedido=fecha_pedido,
-                fecha_entrega_estimada=fecha_entrega,
-                hora_acordada=hora_acordada,
-                estado='pendiente',
-                observaciones=request.form.get('observaciones', '').strip() or None
-            )
-            db.session.add(t)
-            db.session.commit()
-            flash(f'Trabajo {codigo} registrado. El laboratorio lo procesará pronto.', 'success')
-            return redirect(url_for('portal.mis_trabajos'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al registrar: {str(e)}', 'danger')
-
-    return render_template('portal/solicitar.html', o=o, tipos=tipos, hoy=hoy)
+    complejos = TipoTrabajo.query.filter_by(complejidad='complejo').order_by(TipoTrabajo.nombre).all()
+    sencillos = TipoTrabajo.query.filter_by(complejidad='sencillo').order_by(TipoTrabajo.nombre).all()
+    return render_template('portal/tarifas.html', o=o, complejos=complejos, sencillos=sencillos)
 
 
 @portal_bp.route('/mi-saldo')

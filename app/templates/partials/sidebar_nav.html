@@ -18,6 +18,13 @@
         </a>
     </li>
     <li class="nav-item">
+        <a class="nav-link rounded fw-semibold ms-2"
+           style="color:#93c5fd; font-size:.88rem;"
+           href="{{ url_for('trabajos.nuevo') }}">
+            <i class="bi bi-plus-circle me-2"></i>Registrar trabajo
+        </a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link text-white rounded {% if request.endpoint and request.endpoint.startswith('pagos') %}bg-primary{% else %}hover-primary{% endif %}"
            href="{{ url_for('pagos.lista') }}">
             <i class="bi bi-cash-coin me-2"></i>Pagos

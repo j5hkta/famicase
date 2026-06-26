@@ -4,7 +4,12 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0 fw-bold"><i class="bi bi-house me-2 text-primary"></i>Inicio</h4>
-    <span class="text-muted small">{{ hoy.strftime('%d/%m/%Y') }}</span>
+    <div class="d-flex align-items-center gap-2">
+        <span class="text-muted small d-none d-sm-inline">{{ hoy.strftime('%d/%m/%Y') }}</span>
+        <a href="{{ url_for('trabajos.nuevo') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Registrar trabajo
+        </a>
+    </div>
 </div>
 
 <!-- Tarjetas de resumen -->
