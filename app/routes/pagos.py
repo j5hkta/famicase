@@ -25,7 +25,7 @@ def lista():
         total_trabajos = db.session.query(func.sum(Trabajo.precio)).filter_by(odontologo_id=o.id).scalar() or 0
         total_pagado = db.session.query(func.sum(Pago.monto)).filter_by(odontologo_id=o.id).scalar() or 0
         num_trabajos = Trabajo.query.filter_by(odontologo_id=o.id).count()
-        saldo = total_trabajos - total_pagado
+        saldo = total_trabajos - total_pagado + (o.saldo_inicial or 0)
         resumen.append({
             'odontologo': o,
             'num_trabajos': num_trabajos,

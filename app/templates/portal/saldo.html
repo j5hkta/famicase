@@ -35,6 +35,13 @@
                 <div style="font-size:.68rem; opacity:.65; font-weight:500;">Total pagado</div>
                 <div style="font-size:1rem; font-weight:700;">S/ {{ '%.2f'|format(total_pagado) }}</div>
             </div>
+            {% if o.saldo_inicial and o.saldo_inicial > 0 %}
+            <div style="width:1px; background:rgba(255,255,255,.2);"></div>
+            <div>
+                <div style="font-size:.68rem; opacity:.65; font-weight:500;">Deuda anterior</div>
+                <div style="font-size:1rem; font-weight:700;">S/ {{ '%.2f'|format(o.saldo_inicial) }}</div>
+            </div>
+            {% endif %}
         </div>
     </div>
 

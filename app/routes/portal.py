@@ -92,7 +92,7 @@ def dashboard():
 
     total_trabajos = sum(t.precio for t in o.trabajos if t.precio)
     total_pagado = sum(p.monto for p in o.pagos if p.monto)
-    saldo = total_trabajos - total_pagado
+    saldo = total_trabajos - total_pagado + (o.saldo_inicial or 0)
 
     return render_template('portal/dashboard.html',
         o=o,
@@ -146,7 +146,7 @@ def mi_saldo():
 
     total_trabajos = sum(t.precio for t in trabajos if t.precio)
     total_pagado = sum(p.monto for p in pagos if p.monto)
-    saldo = total_trabajos - total_pagado
+    saldo = total_trabajos - total_pagado + (o.saldo_inicial or 0)
 
     # Trabajos sin pago completo (aproximado)
     trabajos_pendientes_pago = [t for t in trabajos if t.precio and t.precio > 0]

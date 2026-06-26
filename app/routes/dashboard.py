@@ -83,7 +83,8 @@ def index():
 
     total_cobrado = db.session.query(func.sum(Trabajo.precio)).scalar() or 0
     total_pagado = db.session.query(func.sum(Pago.monto)).scalar() or 0
-    saldo_pendiente = total_cobrado - total_pagado
+    total_saldo_inicial = db.session.query(func.sum(Odontologo.saldo_inicial)).scalar() or 0
+    saldo_pendiente = total_cobrado - total_pagado + total_saldo_inicial
 
     trabajos_recientes = Trabajo.query.order_by(
         Trabajo.created_at.desc()
