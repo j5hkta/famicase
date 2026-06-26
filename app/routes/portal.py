@@ -153,17 +153,18 @@ def solicitar_trabajo():
 
             codigo = Trabajo.generar_codigo(fecha_pedido.year)
 
+            hora_acordada = request.form.get('hora_acordada', '').strip() or None
+
             t = Trabajo(
                 codigo=codigo,
                 odontologo_id=o.id,
                 tipo_trabajo_id=tipo_id,
                 paciente=request.form.get('paciente', '').strip() or None,
-                num_piezas=num_piezas,
                 precio=precio,
                 fecha_pedido=fecha_pedido,
                 fecha_entrega_estimada=fecha_entrega,
+                hora_acordada=hora_acordada,
                 estado='pendiente',
-                tecnico='Oscar',
                 observaciones=request.form.get('observaciones', '').strip() or None
             )
             db.session.add(t)

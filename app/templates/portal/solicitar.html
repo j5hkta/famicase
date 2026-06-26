@@ -1,4 +1,4 @@
-﻿{% extends 'portal/base.html' %}
+{% extends 'portal/base.html' %}
 {% block title %}Solicitar Trabajo — FamiCase{% endblock %}
 
 {% block content %}
@@ -9,32 +9,24 @@
 
         <!-- Tarjeta 1: Selector de tipo -->
         <div class="portal-card mb-3 fade-in">
-            <div class="px-3 pt-3 pb-1">
+            <div class="px-3 pt-3 pb-2">
                 <div style="font-size:.8rem; font-weight:600; color:var(--p-text); margin-bottom:.75rem;">
-                    <i class="bi bi-tooth me-2" style="color:var(--p-blue);"></i>Tipo de trabajo
+                    <i class="bi bi-list-check me-2" style="color:var(--p-blue);"></i>Tipo de trabajo
                 </div>
 
-                <!-- Grid de tipos seleccionables -->
-                <div class="row g-2 tipo-grid mb-2" id="tiposGrid">
+                <div id="tiposGrid">
                     {% for t in tipos %}
-                    <div class="col-4">
-                        <div class="tipo-card" onclick="selectTipo({{ t.id }}, {{ t.precio_base }}, this)"
-                             data-id="{{ t.id }}">
-                            <div class="tc-icon">
-                                {% if t.complejidad == 'complejo' %}
-                                <i class="bi bi-gem" style="color:#2563eb;"></i>
-                                {% else %}
-                                <i class="bi bi-tools" style="color:#64748b;"></i>
-                                {% endif %}
-                            </div>
-                            <div class="tc-name">{{ t.nombre }}</div>
-                            <div class="tc-price">S/ {{ t.precio_base|int }}</div>
-                        </div>
+                    <div class="tipo-card mb-2"
+                         onclick="selectTipo({{ t.id }}, {{ t.precio_base }}, this)"
+                         data-id="{{ t.id }}">
+                        <span class="tc-name">{{ t.nombre }}</span>
+                        <span class="tc-price">S/ {{ t.precio_base|int }}</span>
                     </div>
                     {% endfor %}
                 </div>
+
                 <input type="hidden" name="tipo_trabajo_id" id="tipoId" required>
-                <div id="tipoError" class="text-danger" style="font-size:.75rem; display:none; margin-bottom:.5rem;">
+                <div id="tipoError" class="text-danger" style="font-size:.75rem; display:none; margin-top:.25rem;">
                     Selecciona un tipo de trabajo.
                 </div>
             </div>
@@ -46,7 +38,6 @@
                 <div style="font-size:.8rem; font-weight:600; color:var(--p-text); margin-bottom:.85rem;">
                     <i class="bi bi-person me-2" style="color:var(--p-blue);"></i>Datos del paciente
                 </div>
-
                 <div class="mb-3">
                     <label class="portal-label">Nombre del paciente</label>
                     <input type="text" name="paciente" class="form-control portal-input"
@@ -55,11 +46,11 @@
             </div>
         </div>
 
-        <!-- Tarjeta 3: Información comercial -->
+        <!-- Tarjeta 3: Fechas, hora y precio -->
         <div class="portal-card mb-3 fade-in delay-2">
             <div class="px-3 py-3">
                 <div style="font-size:.8rem; font-weight:600; color:var(--p-text); margin-bottom:.85rem;">
-                    <i class="bi bi-cash-coin me-2" style="color:var(--p-blue);"></i>Fechas y precio
+                    <i class="bi bi-calendar-clock me-2" style="color:var(--p-blue);"></i>Fechas y precio
                 </div>
 
                 <div class="row g-2 mb-3">
@@ -72,11 +63,15 @@
                         <label class="portal-label">Entrega acordada</label>
                         <input type="date" name="fecha_entrega_estimada" class="form-control portal-input">
                     </div>
-                </div>
-                <div>
-                    <label class="portal-label">Precio acordado (S/)</label>
-                    <input type="number" step="0.01" min="0" name="precio" id="inputPrecio"
-                           class="form-control portal-input" placeholder="Se completa al seleccionar tipo">
+                    <div class="col-6">
+                        <label class="portal-label">Hora acordada</label>
+                        <input type="time" name="hora_acordada" class="form-control portal-input">
+                    </div>
+                    <div class="col-6">
+                        <label class="portal-label">Precio acordado (S/)</label>
+                        <input type="number" step="0.01" min="0" name="precio" id="inputPrecio"
+                               class="form-control portal-input" placeholder="Auto">
+                    </div>
                 </div>
             </div>
         </div>
@@ -99,7 +94,6 @@
         </button>
     </form>
 
-    <!-- Nota informativa -->
     <div class="d-flex align-items-start gap-2 mb-3 fade-in delay-4"
          style="background:#eff6ff; border-radius:12px; padding:.75rem 1rem; font-size:.75rem; color:#2563eb;">
         <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
@@ -111,14 +105,10 @@
 {% block extra_js %}
 <script>
 function selectTipo(id, precio, el) {
-    // Quitar selección previa
     document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
-    // Seleccionar la actual
     el.classList.add('selected');
-    // Guardar en hidden input
     document.getElementById('tipoId').value = id;
     document.getElementById('tipoError').style.display = 'none';
-    // Pre-rellenar precio si está vacío
     const inp = document.getElementById('inputPrecio');
     if (!inp.value) {
         inp.value = parseFloat(precio).toFixed(2);

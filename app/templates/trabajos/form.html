@@ -74,6 +74,13 @@
                            value="{{ trabajo.fecha_entrega_estimada.isoformat() if trabajo and trabajo.fecha_entrega_estimada else '' }}">
                 </div>
 
+                <!-- Hora acordada -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Hora acordada</label>
+                    <input type="time" class="form-control" name="hora_acordada"
+                           value="{{ trabajo.hora_acordada or '' if trabajo else '' }}">
+                </div>
+
                 <!-- Observaciones -->
                 <div class="col-12">
                     <label class="form-label fw-semibold">Observaciones</label>

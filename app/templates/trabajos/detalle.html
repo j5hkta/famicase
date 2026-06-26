@@ -75,6 +75,12 @@
                         <span>{{ trabajo.fecha_entrega_estimada.strftime('%d/%m/%Y') if trabajo.fecha_entrega_estimada else '—' }}</span>
                     </div>
                     <div class="col-sm-4 mb-3">
+                        <small class="text-muted d-block">Hora acordada</small>
+                        <span class="{{ 'fw-semibold' if trabajo.hora_acordada else 'text-muted' }}">
+                            {{ trabajo.hora_acordada or '—' }}
+                        </span>
+                    </div>
+                    <div class="col-sm-4 mb-3">
                         <small class="text-muted d-block">Entrega real</small>
                         <span class="{{ 'text-success fw-semibold' if trabajo.fecha_entrega_real else 'text-muted' }}">
                             {{ trabajo.fecha_entrega_real.strftime('%d/%m/%Y') if trabajo.fecha_entrega_real else '—' }}

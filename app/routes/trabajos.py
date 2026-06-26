@@ -79,6 +79,7 @@ def nuevo():
                 precio=precio,
                 fecha_pedido=fecha_pedido,
                 fecha_entrega_estimada=fecha_entrega,
+                hora_acordada=request.form.get('hora_acordada', '').strip() or None,
                 estado='pendiente',
                 observaciones=request.form.get('observaciones', '').strip() or None
             )
@@ -115,6 +116,7 @@ def editar(id):
             fecha_entrega_str = request.form.get('fecha_entrega_estimada', '')
             t.fecha_entrega_estimada = date.fromisoformat(fecha_entrega_str) if fecha_entrega_str else None
             t.paciente = request.form.get('paciente', '').strip() or None
+            t.hora_acordada = request.form.get('hora_acordada', '').strip() or None
             t.observaciones = request.form.get('observaciones', '').strip() or None
             db.session.commit()
             flash('Trabajo actualizado correctamente.', 'success')

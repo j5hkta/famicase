@@ -10,11 +10,15 @@ with app.app_context():
     db.create_all()
 
     with db.engine.connect() as conn:
-        try:
-            conn.execute(db.text("ALTER TABLE odontologos ADD COLUMN pin_acceso VARCHAR(10)"))
-            conn.commit()
-        except Exception:
-            pass
+        for sql in [
+            "ALTER TABLE odontologos ADD COLUMN pin_acceso VARCHAR(10)",
+            "ALTER TABLE trabajos ADD COLUMN hora_acordada VARCHAR(5)",
+        ]:
+            try:
+                conn.execute(db.text(sql))
+                conn.commit()
+            except Exception:
+                pass
 
     if not Usuario.query.filter_by(username='admin').first():
         db.session.add(Usuario(

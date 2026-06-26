@@ -69,6 +69,7 @@ class Trabajo(db.Model):
         nullable=False
     )
     tecnico = db.Column(db.String(20), nullable=True)
+    hora_acordada = db.Column(db.String(5))
     observaciones = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
