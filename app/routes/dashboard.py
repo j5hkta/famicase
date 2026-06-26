@@ -165,3 +165,15 @@ def hacer_backup():
     else:
         flash('No se pudo crear el respaldo. Verifica que la base de datos existe.', 'danger')
     return redirect(url_for('dashboard.index'))
+
+
+@dashboard_bp.route('/limpiar-datos', methods=['POST'])
+@login_required
+def limpiar_datos():
+    from app.models import Pago, Trabajo
+    crear_backup()
+    Pago.query.delete()
+    Trabajo.query.delete()
+    db.session.commit()
+    flash('Todos los trabajos y pagos han sido eliminados. Se creó un respaldo antes de limpiar.', 'success')
+    return redirect(url_for('dashboard.index'))

@@ -130,6 +130,53 @@
     </div>
 </div>
 
+<!-- Panel limpiar datos de prueba -->
+<div class="card shadow-sm mt-4 border-danger">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold text-danger"><i class="bi bi-trash3 me-2"></i>Limpiar datos de prueba</h6>
+        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalLimpiar">
+            <i class="bi bi-trash3 me-1"></i>Limpiar todo
+        </button>
+    </div>
+    <div class="card-body py-2">
+        <p class="text-muted small mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Elimina todos los trabajos y pagos registrados (datos de prueba). Los odontólogos y tipos de trabajo se conservan.
+            Se crea un respaldo automático antes de limpiar.
+        </p>
+    </div>
+</div>
+
+<!-- Modal confirmar limpieza -->
+<div class="modal fade" id="modalLimpiar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>¿Limpiar datos de prueba?
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-2">Esta acción eliminará <strong>todos los trabajos y pagos</strong> registrados hasta ahora.</p>
+                <div class="alert alert-success py-2 small mb-2">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Se creará un respaldo automático antes de limpiar, por si necesitas recuperar algo.
+                </div>
+                <p class="text-muted small mb-0">Los odontólogos, tipos de trabajo y el usuario admin no se tocan.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{{ url_for('dashboard.limpiar_datos') }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash3 me-1"></i>Sí, limpiar todo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Panel de respaldos -->
 <div class="card shadow-sm mt-4">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
