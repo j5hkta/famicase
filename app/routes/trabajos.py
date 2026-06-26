@@ -248,8 +248,8 @@ def generar_pdf(id):
 
     y3 = y2 - 1.0*cm
     fila('Tipo:', t.tipo_trabajo.nombre, y3)
-    fila('N° de piezas:', str(t.num_piezas) if t.num_piezas else '—', y3 - 0.7*cm)
-    fila('Técnico:', t.tecnico, y3 - 1.4*cm)
+    fila('Hora acordada:', t.hora_acordada or '—', y3 - 0.7*cm)
+    fila('Técnico:', 'Santa Loayza & Oscar Huánuco', y3 - 1.4*cm)
     fila('Estado:', ESTADO_LABELS.get(t.estado, t.estado), y3 - 2.1*cm)
     if t.observaciones:
         fila('Observaciones:', '', y3 - 2.8*cm)

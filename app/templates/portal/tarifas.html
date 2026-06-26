@@ -5,16 +5,9 @@
 <div class="pt-3">
     <div class="portal-section-title">Lista de precios</div>
 
-    <!-- Complejos -->
-    {% if complejos %}
-    <div class="d-flex align-items-center gap-2 mb-2 fade-in">
-        <span style="font-size:.72rem; font-weight:700; color:#2563eb; text-transform:uppercase; letter-spacing:.05em;">Trabajos complejos</span>
-        <div style="flex:1; height:1px; background:#e2e8f0;"></div>
-    </div>
     <div class="portal-card mb-3 fade-in">
-        {% for t in complejos %}
-        <div class="d-flex align-items-center justify-content-between px-3 py-3 {{ 'border-top' if not loop.first }}"
-             style="transition: background .15s;">
+        {% for t in tipos %}
+        <div class="d-flex align-items-center justify-content-between px-3 py-3 {{ 'border-top' if not loop.first }}">
             <span style="font-size:.87rem; font-weight:500; color:#1e293b;">{{ t.nombre }}</span>
             <span style="font-size:.9rem; font-weight:700; color:#2563eb; flex-shrink:0; margin-left:1rem;">
                 S/ {{ t.precio_base|int }}
@@ -22,27 +15,8 @@
         </div>
         {% endfor %}
     </div>
-    {% endif %}
 
-    <!-- Sencillos -->
-    {% if sencillos %}
-    <div class="d-flex align-items-center gap-2 mb-2 fade-in delay-1">
-        <span style="font-size:.72rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.05em;">Trabajos sencillos</span>
-        <div style="flex:1; height:1px; background:#e2e8f0;"></div>
-    </div>
-    <div class="portal-card mb-3 fade-in delay-1">
-        {% for t in sencillos %}
-        <div class="d-flex align-items-center justify-content-between px-3 py-3 {{ 'border-top' if not loop.first }}">
-            <span style="font-size:.87rem; font-weight:500; color:#1e293b;">{{ t.nombre }}</span>
-            <span style="font-size:.9rem; font-weight:700; color:#64748b; flex-shrink:0; margin-left:1rem;">
-                S/ {{ t.precio_base|int }}
-            </span>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="d-flex align-items-center gap-2 mb-3 fade-in delay-2"
+    <div class="d-flex align-items-center gap-2 mb-3 fade-in delay-1"
          style="background:#eff6ff; border-radius:12px; padding:.75rem 1rem; font-size:.75rem; color:#2563eb;">
         <i class="bi bi-info-circle-fill flex-shrink-0"></i>
         <span>Los precios son referenciales. El precio final se acuerda directamente con el laboratorio.</span>

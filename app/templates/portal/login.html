@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -32,6 +32,15 @@
             padding: 2rem;
             text-align: center;
         }
+        .tip-box {
+            background: #eff6ff;
+            border-left: 3px solid #93c5fd;
+            border-radius: 0 8px 8px 0;
+            padding: .55rem .75rem;
+            font-size: .78rem;
+            color: #1d4ed8;
+            margin-top: .4rem;
+        }
     </style>
 </head>
 <body>
@@ -53,13 +62,17 @@
 
                     <form method="POST">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold text-muted small">¿Quién eres?</label>
-                            <select name="odontologo_id" class="form-select form-select-lg" required>
-                                <option value="">— Selecciona tu nombre —</option>
-                                {% for o in odontologos %}
-                                <option value="{{ o.id }}">{{ o.nombre }}</option>
-                                {% endfor %}
-                            </select>
+                            <label class="form-label fw-semibold text-muted small">Tu nombre</label>
+                            <input type="text" name="nombre"
+                                   class="form-control form-control-lg"
+                                   placeholder="Ej: Dr. Carlos, Dra. María"
+                                   autocomplete="name"
+                                   required>
+                            <div class="tip-box">
+                                <i class="bi bi-lightbulb me-1"></i>
+                                Usa el formato <strong>Dr.</strong> o <strong>Dra.</strong> seguido de tu nombre.<br>
+                                Ejemplo: <em>Dr. Henry</em>, <em>Dra. Ginneth</em>
+                            </div>
                         </div>
 
                         <div class="mb-4">

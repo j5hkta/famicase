@@ -50,23 +50,18 @@ def login():
     if 'portal_odontologo_id' in session:
         return redirect(url_for('portal.dashboard'))
 
-    odontologos = Odontologo.query.filter_by(activo=True).order_by(Odontologo.nombre).all()
-
     if request.method == 'POST':
-        odontologo_id = request.form.get('odontologo_id', '')[:10]
+        nombre = request.form.get('nombre', '').strip()[:80]
         pin = request.form.get('pin', '').strip()[:6]
 
-        if not odontologo_id or not pin:
-            flash('Selecciona tu nombre e ingresa tu PIN.', 'danger')
-            return render_template('portal/login.html', odontologos=odontologos)
+        if not nombre or not pin:
+            flash('Escribe tu nombre e ingresa tu PIN.', 'danger')
+            return render_template('portal/login.html')
 
-        try:
-            oid = int(odontologo_id)
-        except ValueError:
-            flash('Solicitud inválida.', 'danger')
-            return render_template('portal/login.html', odontologos=odontologos)
-
-        o = Odontologo.query.filter_by(id=oid, activo=True).first()
+        o = Odontologo.query.filter(
+            Odontologo.nombre.ilike(nombre),
+            Odontologo.activo == True
+        ).first()
         if o and o.pin_acceso and o.pin_acceso == pin:
             session['portal_odontologo_id'] = o.id
             session.permanent = True
@@ -74,7 +69,7 @@ def login():
         else:
             flash('PIN incorrecto. Consulta con el laboratorio.', 'danger')
 
-    return render_template('portal/login.html', odontologos=odontologos)
+    return render_template('portal/login.html')
 
 
 @portal_bp.route('/logout')
@@ -137,9 +132,8 @@ def mis_trabajos():
 @portal_login_required
 def tarifas():
     o = get_odontologo_actual()
-    complejos = TipoTrabajo.query.filter_by(complejidad='complejo').order_by(TipoTrabajo.nombre).all()
-    sencillos = TipoTrabajo.query.filter_by(complejidad='sencillo').order_by(TipoTrabajo.nombre).all()
-    return render_template('portal/tarifas.html', o=o, complejos=complejos, sencillos=sencillos)
+    tipos = TipoTrabajo.query.order_by(TipoTrabajo.nombre).all()
+    return render_template('portal/tarifas.html', o=o, tipos=tipos)
 
 
 @portal_bp.route('/mi-saldo')
