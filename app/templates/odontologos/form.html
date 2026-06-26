@@ -1,0 +1,76 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if odontologo else 'Nuevo' }} Odontólogo — FamiCase{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('odontologos.lista') }}" class="btn btn-sm btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h4 class="mb-0 fw-bold">
+        <i class="bi bi-person-badge me-2 text-primary"></i>
+        {{ 'Editar Odontólogo' if odontologo else 'Nuevo Odontólogo' }}
+    </h4>
+</div>
+
+<div class="card shadow-sm" style="max-width: 600px;">
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="nombre"
+                       value="{{ odontologo.nombre if odontologo else '' }}"
+                       placeholder="Ej: Dr. García" required>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Teléfono</label>
+                    <input type="text" class="form-control" name="telefono"
+                           value="{{ odontologo.telefono if odontologo else '' }}"
+                           placeholder="999-999-999">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Correo electrónico</label>
+                    <input type="email" class="form-control" name="correo"
+                           value="{{ odontologo.correo if odontologo else '' }}"
+                           placeholder="correo@ejemplo.com">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Dirección</label>
+                <input type="text" class="form-control" name="direccion"
+                       value="{{ odontologo.direccion if odontologo else '' }}"
+                       placeholder="Dirección del consultorio">
+            </div>
+
+            <hr>
+            <div class="mb-1">
+                <label class="form-label fw-semibold">PIN de acceso al portal</label>
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+                       class="form-control" name="pin_acceso"
+                       value="{{ odontologo.pin_acceso if odontologo and odontologo.pin_acceso else '' }}"
+                       placeholder="Ej: 1234">
+                <div class="form-text">
+                    PIN de 4–6 dígitos que el odontólogo usará para ingresar a
+                    <a href="{{ url_for('portal.login') }}" target="_blank">su portal</a>.
+                    Déjalo vacío si no tiene acceso aún.
+                </div>
+            </div>
+            {% if odontologo and odontologo.pin_acceso %}
+            <div class="mb-3">
+                <a href="{{ url_for('portal.login') }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Ver portal del odontólogo
+                </a>
+            </div>
+            {% endif %}
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>
+                    {{ 'Actualizar' if odontologo else 'Guardar' }}
+                </button>
+                <a href="{{ url_for('odontologos.lista') }}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

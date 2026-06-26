@@ -1,0 +1,108 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if trabajo else 'Nuevo' }} Trabajo — FamiCase{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('trabajos.lista') }}" class="btn btn-sm btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h4 class="mb-0 fw-bold">
+        <i class="bi bi-clipboard2-check me-2 text-primary"></i>
+        {{ 'Editar Trabajo — ' + trabajo.codigo if trabajo else 'Nuevo Trabajo' }}
+    </h4>
+</div>
+
+<div class="card shadow-sm" style="max-width: 750px;">
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="row g-3">
+                <!-- Odontólogo -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Odontólogo <span class="text-danger">*</span></label>
+                    <select name="odontologo_id" class="form-select" required>
+                        <option value="">— Seleccionar —</option>
+                        {% for o in odontologos %}
+                        <option value="{{ o.id }}"
+                            {{ 'selected' if (trabajo and trabajo.odontologo_id == o.id) or (not trabajo and odontologo_id_pre == o.id|string) }}>
+                            {{ o.nombre }}{% if o.clinica %} — {{ o.clinica }}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Tipo de trabajo -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Tipo de trabajo <span class="text-danger">*</span></label>
+                    <select name="tipo_trabajo_id" class="form-select" required id="selectTipo">
+                        <option value="">— Seleccionar —</option>
+                        {% for tp in tipos %}
+                        <option value="{{ tp.id }}" data-precio="{{ tp.precio_base }}"
+                            {{ 'selected' if trabajo and trabajo.tipo_trabajo_id == tp.id }}>
+                            {{ tp.nombre }} (S/ {{ '%.0f'|format(tp.precio_base) }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Precio -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Precio (S/) <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" min="0" class="form-control" name="precio" id="inputPrecio"
+                           value="{{ '%.2f'|format(trabajo.precio) if trabajo else '' }}"
+                           placeholder="0.00" required>
+                </div>
+
+                <!-- Paciente -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Paciente</label>
+                    <input type="text" class="form-control" name="paciente"
+                           value="{{ trabajo.paciente or '' if trabajo else '' }}"
+                           placeholder="Nombre del paciente (opcional)">
+                </div>
+
+                <!-- Fecha de pedido -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Fecha de pedido <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" name="fecha_pedido"
+                           value="{{ trabajo.fecha_pedido.isoformat() if trabajo else hoy }}" required>
+                </div>
+
+                <!-- Fecha de entrega estimada -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Entrega estimada</label>
+                    <input type="date" class="form-control" name="fecha_entrega_estimada"
+                           value="{{ trabajo.fecha_entrega_estimada.isoformat() if trabajo and trabajo.fecha_entrega_estimada else '' }}">
+                </div>
+
+                <!-- Observaciones -->
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Observaciones</label>
+                    <textarea class="form-control" name="observaciones" rows="3"
+                              placeholder="Indicaciones especiales, color, materiales, número de piezas...">{{ trabajo.observaciones or '' if trabajo else '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>
+                    {{ 'Actualizar' if trabajo else 'Registrar trabajo' }}
+                </button>
+                <a href="{{ url_for('trabajos.lista') }}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Pre-rellenar precio cuando se selecciona tipo de trabajo
+document.getElementById('selectTipo').addEventListener('change', function () {
+    const opt = this.options[this.selectedIndex];
+    const precio = opt.dataset.precio;
+    if (precio && !document.getElementById('inputPrecio').value) {
+        document.getElementById('inputPrecio').value = parseFloat(precio).toFixed(2);
+    }
+});
+</script>
+{% endblock %}

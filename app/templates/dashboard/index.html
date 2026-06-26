@@ -1,0 +1,171 @@
+﻿{% extends 'base.html' %}
+{% block title %}Inicio — FamiCase{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold"><i class="bi bi-house me-2 text-primary"></i>Inicio</h4>
+    <span class="text-muted small">{{ hoy.strftime('%d/%m/%Y') }}</span>
+</div>
+
+<!-- Tarjetas de resumen -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card border-primary h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Trabajos Activos</div>
+                        <div class="fs-2 fw-bold text-primary">{{ trabajos_activos }}</div>
+                    </div>
+                    <i class="bi bi-clipboard2-check fs-2 text-primary opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card border-warning h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Entregar esta semana</div>
+                        <div class="fs-2 fw-bold text-warning">{{ trabajos_semana }}</div>
+                    </div>
+                    <i class="bi bi-calendar-check fs-2 text-warning opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card border-danger h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Saldo por cobrar</div>
+                        <div class="fs-2 fw-bold text-danger">S/ {{ '%.2f'|format(saldo_pendiente) }}</div>
+                    </div>
+                    <i class="bi bi-cash-coin fs-2 text-danger opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Tabla de trabajos recientes -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-clock-history me-2"></i>Trabajos Recientes</h6>
+        <a href="{{ url_for('trabajos.lista') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Código</th>
+                        <th>Odontólogo</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Entrega estimada</th>
+                        <th class="text-end">Precio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in trabajos_recientes %}
+                    <tr onclick="window.location='{{ url_for('trabajos.detalle', id=t.id) }}'" style="cursor:pointer;">
+                        <td><span class="badge bg-secondary">{{ t.codigo }}</span></td>
+                        <td>{{ t.odontologo.nombre }}</td>
+                        <td>{{ t.tipo_trabajo.nombre }}</td>
+                        <td>
+                            {% set estado_clases = {
+                                'pendiente': 'secondary',
+                                'en_proceso': 'primary',
+                                'pulido': 'primary',
+                                'terminado': 'success',
+                                'entregado': 'success'
+                            } %}
+                            {% set estado_labels = {
+                                'pendiente': 'Recibido',
+                                'en_proceso': 'En proceso',
+                                'pulido': 'En proceso',
+                                'terminado': 'Finalizado',
+                                'entregado': 'Finalizado'
+                            } %}
+                            <span class="badge bg-{{ estado_clases.get(t.estado, 'secondary') }}">
+                                {{ estado_labels.get(t.estado, t.estado) }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if t.fecha_entrega_estimada %}
+                                {% if t.estado != 'entregado' and t.fecha_entrega_estimada < hoy %}
+                                    <span class="text-danger fw-semibold">
+                                        <i class="bi bi-exclamation-circle me-1"></i>{{ t.fecha_entrega_estimada.strftime('%d/%m/%Y') }}
+                                    </span>
+                                {% else %}
+                                    {{ t.fecha_entrega_estimada.strftime('%d/%m/%Y') }}
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end fw-semibold">S/ {{ '%.2f'|format(t.precio) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-4 d-block mb-2"></i>No hay trabajos registrados aún.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Panel de respaldos -->
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-shield-check me-2 text-success"></i>Respaldos de base de datos</h6>
+        <form method="POST" action="{{ url_for('dashboard.hacer_backup') }}">
+            <button type="submit" class="btn btn-sm btn-success">
+                <i class="bi bi-download me-1"></i>Crear respaldo ahora
+            </button>
+        </form>
+    </div>
+    <div class="card-body py-2">
+        {% if backups %}
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Archivo</th>
+                        <th>Fecha</th>
+                        <th class="text-end">Tamaño</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in backups[:5] %}
+                    <tr>
+                        <td class="small text-muted">{{ b['nombre'] }}</td>
+                        <td class="small">{{ b['fecha'][:8][:4] }}/{{ b['fecha'][4:6] }}/{{ b['fecha'][6:8] }} {{ b['fecha'][9:11] }}:{{ b['fecha'][11:13] }}</td>
+                        <td class="small text-end">{{ b['tamano_kb'] }} KB</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-muted small mt-1 px-1">
+            <i class="bi bi-info-circle me-1"></i>
+            Se conservan los últimos 10 respaldos. Ubicación: <code>instance/backups/</code>
+        </div>
+        {% else %}
+        <p class="text-muted small mb-0 py-1">
+            <i class="bi bi-info-circle me-1"></i>No hay respaldos aún. Se crea uno automáticamente al iniciar la aplicación cada día.
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

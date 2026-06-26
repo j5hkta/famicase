@@ -1,0 +1,72 @@
+﻿{% extends 'base.html' %}
+{% block title %}Odontólogos — FamiCase{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold"><i class="bi bi-person-badge me-2 text-primary"></i>Odontólogos</h4>
+    <a href="{{ url_for('odontologos.nuevo') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Nuevo odontólogo
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table id="tablaOdontologos" class="table table-hover w-100">
+            <thead class="table-light">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                    <th>Saldo pendiente</th>
+                    <th>PIN portal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in odontologos %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('odontologos.detalle', id=o.id) }}" class="text-decoration-none fw-semibold">
+                            {{ o.nombre }}
+                        </a>
+                    </td>
+                    <td>{{ o.telefono or '—' }}</td>
+                    <td>{{ o.correo or '—' }}</td>
+                    <td>
+                        {% set saldo = o.saldo_pendiente() %}
+                        <span class="{{ 'saldo-pendiente' if saldo > 0 else 'saldo-pagado' }}">
+                            S/ {{ '%.2f'|format(saldo) }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if o.pin_acceso %}
+                        <span class="badge bg-secondary">{{ o.pin_acceso }}</span>
+                        {% else %}
+                        <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('odontologos.editar', id=o.id) }}" class="btn btn-sm btn-outline-secondary me-1">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{{ url_for('odontologos.detalle', id=o.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No hay odontólogos registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    initDataTable('#tablaOdontologos');
+</script>
+{% endblock %}

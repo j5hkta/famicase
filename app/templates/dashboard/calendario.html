@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% block title %}Calendario — FamiCase{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css' rel='stylesheet'>
+<style>
+    #calendar-card .fc .fc-toolbar-title { font-size:1rem; font-weight:700; }
+    #calendar-card .fc .fc-event {
+        font-size:.72rem;
+        border-radius:5px;
+        padding:2px 6px;
+        border:none;
+        cursor:pointer;
+        font-weight:600;
+    }
+    #calendar-card .fc .fc-daygrid-day.fc-day-today { background:#eff6ff !important; }
+    #calendar-card .fc .fc-daygrid-day { cursor:pointer; }
+    #panel-dia {
+        display:none;
+        border-radius: .5rem;
+        overflow:hidden;
+        border: 1px solid #dee2e6;
+    }
+    .panel-dia-header {
+        background: linear-gradient(135deg, #0d6efd, #0a58ca);
+        color:#fff; padding:.65rem 1rem;
+    }
+    .panel-item-admin {
+        padding:.6rem 1rem;
+        border-bottom:1px solid #f1f5f9;
+        transition: background .15s;
+    }
+    .panel-item-admin:last-child { border-bottom:none; }
+    .panel-item-admin:hover { background:#f8f9fa; cursor:pointer; }
+    .fc-day-past-custom { opacity:.6; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold">
+        <i class="bi bi-calendar3 me-2 text-primary"></i>Calendario de entregas
+    </h4>
+    <span class="badge bg-primary fs-6">{{ total }} trabajo{{ 's' if total != 1 }} pendiente{{ 's' if total != 1 }}</span>
+</div>
+
+<!-- Leyenda -->
+<div class="d-flex flex-wrap gap-3 mb-3">
+    {% for color, label in [('#6366f1','Recibido'),('#2563eb','En proceso'),('#10b981','Finalizado')] %}
+    <div class="d-flex align-items-center gap-1" style="font-size:.8rem;">
+        <div style="width:12px;height:12px;border-radius:3px;background:{{ color }};"></div>
+        <span class="text-muted">{{ label }}</span>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row g-3">
+    <!-- Calendario -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm" id="calendar-card">
+            <div class="card-body">
+                <div id="calendar"></div>
+            </div>
+        </div>
+
+        <!-- Panel detalle de fecha -->
+        <div id="panel-dia" class="card shadow-sm mt-3">
+            <div class="panel-dia-header d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold" id="panel-dia-titulo" style="font-size:.9rem;">—</div>
+                    <div style="font-size:.75rem; opacity:.8;">Trabajos a entregar</div>
+                </div>
+                <button onclick="cerrarPanel()" class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div id="panel-dia-lista"></div>
+        </div>
+    </div>
+
+    <!-- Lista próximas entregas -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-clock-history me-2 text-warning"></i>Próximas entregas</h6>
+            </div>
+            <div class="card-body p-0" style="max-height:520px; overflow-y:auto;">
+                {% if proximas %}
+                <table class="table table-hover table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="font-size:.75rem;">Fecha</th>
+                            <th style="font-size:.75rem;">Odontólogo / Tipo</th>
+                            <th style="font-size:.75rem;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for t in proximas %}
+                    {% set dias = (t.fecha_entrega_estimada - hoy).days %}
+                    <tr onclick="window.location='{{ url_for('trabajos.detalle', id=t.id) }}'"
+                        style="cursor:pointer;">
+                        <td style="font-size:.78rem; white-space:nowrap;">
+                            <span class="fw-semibold
+                                {% if dias < 0 %}text-danger
+                                {% elif dias <= 2 %}text-warning
+                                {% else %}text-success{% endif %}">
+                                {{ t.fecha_entrega_estimada.strftime('%d/%m') }}
+                            </span>
+                            <div class="text-muted" style="font-size:.68rem;">
+                                {% if dias < 0 %}{{ (-dias) }}d atrás
+                                {% elif dias == 0 %}Hoy
+                                {% elif dias == 1 %}Mañana
+                                {% else %}{{ dias }}d
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td style="font-size:.78rem;">
+                            <div class="fw-semibold">{{ t.odontologo.nombre }}</div>
+                            <div class="text-muted">{{ t.tipo_trabajo.nombre }}</div>
+                        </td>
+                        <td>
+                            {% set ec = {'pendiente':'secondary','en_proceso':'primary','pulido':'primary','terminado':'success'} %}
+                            <span class="badge bg-{{ ec.get(t.estado,'secondary') }}" style="font-size:.65rem;">
+                                {{ estado_labels.get(t.estado) }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-check-circle fs-2 d-block mb-2 text-success"></i>
+                    No hay trabajos pendientes.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js'></script>
+<script>
+const eventos = {{ eventos | tojson }};
+
+function formatFechaES(isoDate) {
+    const p = isoDate.split('-');
+    const d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+    return d.toLocaleDateString('es-PE', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
+}
+
+function mostrarPanel(fechaISO) {
+    const evsDia = eventos.filter(e => e.start === fechaISO);
+    const panel  = document.getElementById('panel-dia');
+    const titulo = document.getElementById('panel-dia-titulo');
+    const lista  = document.getElementById('panel-dia-lista');
+
+    titulo.textContent = formatFechaES(fechaISO);
+
+    if (evsDia.length === 0) {
+        lista.innerHTML = `<div class="text-center py-4 text-muted" style="font-size:.85rem;">
+            No hay trabajos programados para este día</div>`;
+    } else {
+        lista.innerHTML = evsDia.map(e => {
+            const p = e.extendedProps;
+            return `
+            <div class="panel-item-admin"
+                 onclick="window.location='/trabajos/${p.trabajo_id}'">
+                <div class="d-flex align-items-start gap-2">
+                    <div style="width:10px;height:10px;border-radius:50%;background:${e.color};flex-shrink:0;margin-top:5px;"></div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="fw-semibold" style="font-size:.85rem;">${p.odontologo}</span>
+                            <span class="badge"
+                                  style="font-size:.65rem; background:${e.color}20; color:${e.color}; border-radius:8px;">
+                                ${p.estado_label}
+                            </span>
+                        </div>
+                        <div class="text-muted" style="font-size:.78rem;">${p.tipo}${p.paciente ? ' — ' + p.paciente : ''}</div>
+                        <div class="text-muted" style="font-size:.72rem;">${p.codigo} · S/ ${p.precio}</div>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function cerrarPanel() {
+    document.getElementById('panel-dia').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        headerToolbar: { left: 'prev', center: 'title', right: 'next today' },
+        height: 'auto',
+        events: eventos,
+        dateClick: function(info) {
+            mostrarPanel(info.dateStr);
+        },
+        eventClick: function(info) {
+            info.jsEvent.preventDefault();
+            mostrarPanel(info.event.startStr);
+        },
+        dayCellClassNames: function(info) {
+            const hoy = new Date(); hoy.setHours(0,0,0,0);
+            return info.date < hoy ? ['fc-day-past-custom'] : [];
+        }
+    });
+    calendar.render();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,113 @@
+﻿{% extends 'base.html' %}
+{% block title %}Inventario — FamiCase{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold"><i class="bi bi-box-seam me-2 text-primary"></i>Inventario de Materiales</h4>
+    <a href="{{ url_for('inventario.nuevo') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Agregar material
+    </a>
+</div>
+
+<!-- Alerta stock bajo -->
+{% set bajos = materiales|selectattr('stock_bajo')|list %}
+{% if bajos %}
+<div class="alert alert-warning d-flex align-items-start mb-4">
+    <i class="bi bi-exclamation-triangle-fill me-2 fs-5 mt-1"></i>
+    <div>
+        <strong>¡Stock bajo en {{ bajos|length }} material(es)!</strong>
+        <ul class="mb-0 mt-1">
+            {% for m in bajos %}
+            <li>{{ m.nombre }}: {{ m.stock }} {{ m.unidad }} (mínimo: {{ m.stock_minimo }} {{ m.unidad }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table id="tablaInventario" class="table table-hover w-100">
+            <thead class="table-light">
+                <tr>
+                    <th>Material</th>
+                    <th class="text-center">Stock actual</th>
+                    <th>Unidad</th>
+                    <th class="text-center">Stock mínimo</th>
+                    <th>Proveedor</th>
+                    <th class="text-center">Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in materiales %}
+                <tr class="{{ 'stock-bajo' if m.stock_bajo else '' }}">
+                    <td class="fw-semibold">{{ m.nombre }}</td>
+                    <td class="text-center fw-bold {{ 'text-danger' if m.stock_bajo else 'text-success' }}">
+                        {{ m.stock }}
+                    </td>
+                    <td>{{ m.unidad }}</td>
+                    <td class="text-center">{{ m.stock_minimo }}</td>
+                    <td>{{ m.proveedor or '—' }}</td>
+                    <td class="text-center">
+                        {% if m.stock_bajo %}
+                        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Stock bajo</span>
+                        {% else %}
+                        <span class="badge bg-success"><i class="bi bi-check me-1"></i>OK</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <!-- Modal para entrada de stock -->
+                        <button class="btn btn-sm btn-success me-1" data-bs-toggle="modal"
+                                data-bs-target="#modalEntrada{{ m.id }}" title="Registrar entrada">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                        <a href="{{ url_for('inventario.editar', id=m.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+
+                <!-- Modal entrada de stock -->
+                <div class="modal fade" id="modalEntrada{{ m.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h6 class="modal-title">Entrada de stock — {{ m.nombre }}</h6>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{{ url_for('inventario.entrada_stock', id=m.id) }}">
+                                <div class="modal-body">
+                                    <label class="form-label">Cantidad a agregar ({{ m.unidad }})</label>
+                                    <input type="number" step="0.01" min="0.01" class="form-control"
+                                           name="cantidad" placeholder="0" required>
+                                    <div class="form-text">Stock actual: {{ m.stock }} {{ m.unidad }}</div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="bi bi-plus me-1"></i>Agregar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="bi bi-box fs-4 d-block mb-2"></i>No hay materiales registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    initDataTable('#tablaInventario', { order: [[0, 'asc']] });
+</script>
+{% endblock %}

@@ -1,0 +1,90 @@
+﻿{% extends 'base.html' %}
+{% block title %}Registrar Pago — FamiCase{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('pagos.lista') }}" class="btn btn-sm btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h4 class="mb-0 fw-bold">
+        <i class="bi bi-cash-coin me-2 text-primary"></i>Registrar Pago
+    </h4>
+</div>
+
+<div class="card shadow-sm" style="max-width: 600px;">
+    <div class="card-body p-4">
+        <form method="POST" id="formPago">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Odontólogo <span class="text-danger">*</span></label>
+                <select name="odontologo_id" class="form-select" required id="selectOdontologo">
+                    <option value="">— Seleccionar —</option>
+                    {% for o in odontologos %}
+                    <option value="{{ o.id }}" {{ 'selected' if odontologo_id_pre == o.id|string }}>
+                        {{ o.nombre }}{% if o.clinica %} — {{ o.clinica }}{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Trabajo asociado (opcional)</label>
+                <select name="trabajo_id" class="form-select" id="selectTrabajo">
+                    <option value="">— Pago general / sin trabajo específico —</option>
+                    {% for t in trabajos_pre %}
+                    <option value="{{ t.id }}">{{ t.codigo }} — {{ t.tipo_trabajo.nombre }} (S/ {{ '%.2f'|format(t.precio) }})</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">Seleccionar un odontólogo primero para ver sus trabajos pendientes.</div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <label class="form-label fw-semibold">Monto (S/) <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" min="0.01" class="form-control" name="monto"
+                           placeholder="0.00" required>
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label fw-semibold">Fecha de pago <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" name="fecha_pago" value="{{ hoy }}" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Método de pago <span class="text-danger">*</span></label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        {% for val, label in [('efectivo','💵 Efectivo'),('transferencia','🏦 Transferencia'),('yape','📱 Yape'),('plin','📱 Plin')] %}
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="metodo" id="metodo_{{ val }}"
+                                   value="{{ val }}" {{ 'checked' if val == 'efectivo' }} required>
+                            <label class="form-check-label" for="metodo_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Observaciones</label>
+                    <textarea class="form-control" name="observaciones" rows="2"
+                              placeholder="Número de operación, referencia, etc."></textarea>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-lg me-1"></i>Registrar pago
+                </button>
+                <a href="{{ url_for('pagos.lista') }}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Cuando cambia el odontólogo, recargar trabajos vía redirect
+document.getElementById('selectOdontologo').addEventListener('change', function () {
+    const id = this.value;
+    if (id) {
+        window.location.href = '{{ url_for("pagos.nuevo") }}?odontologo_id=' + id;
+    }
+});
+</script>
+{% endblock %}

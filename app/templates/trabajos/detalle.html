@@ -1,0 +1,162 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ trabajo.codigo }} — FamiCase{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 flex-wrap gap-2">
+    <a href="{{ url_for('trabajos.lista') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h4 class="mb-0 fw-bold">
+        <i class="bi bi-clipboard2-check me-2 text-primary"></i>{{ trabajo.codigo }}
+    </h4>
+    <div class="ms-auto d-flex gap-2 flex-wrap">
+        <a href="{{ url_for('trabajos.generar_pdf', id=trabajo.id) }}" class="btn btn-sm btn-outline-danger" target="_blank">
+            <i class="bi bi-file-pdf me-1"></i>Generar PDF
+        </a>
+        <a href="{{ url_for('trabajos.editar', id=trabajo.id) }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i>Editar
+        </a>
+        {% if trabajo.estado != 'entregado' %}
+        <form method="POST" action="{{ url_for('trabajos.marcar_entregado', id=trabajo.id) }}"
+              onsubmit="return confirm('¿Marcar como entregado hoy?')">
+            <button type="submit" class="btn btn-sm btn-success">
+                <i class="bi bi-check-circle me-1"></i>Marcar entregado
+            </button>
+        </form>
+        {% endif %}
+        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar">
+            <i class="bi bi-trash me-1"></i>Eliminar
+        </button>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Datos principales -->
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold">Información del trabajo</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6 mb-3">
+                        <small class="text-muted d-block">Odontólogo</small>
+                        <a href="{{ url_for('odontologos.detalle', id=trabajo.odontologo.id) }}" class="fw-semibold text-decoration-none">
+                            {{ trabajo.odontologo.nombre }}
+                        </a>
+                        {% if trabajo.odontologo.clinica %}
+                        <div class="text-muted small">{{ trabajo.odontologo.clinica }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm-6 mb-3">
+                        <small class="text-muted d-block">Tipo de trabajo</small>
+                        <span class="fw-semibold">{{ trabajo.tipo_trabajo.nombre }}</span>
+                        <div class="badge bg-{% if trabajo.tipo_trabajo.complejidad == 'complejo' %}danger{% else %}secondary{% endif %} ms-1">
+                            {{ trabajo.tipo_trabajo.complejidad.capitalize() }}
+                        </div>
+                    </div>
+                    <div class="col-sm-6 mb-3">
+                        <small class="text-muted d-block">Paciente</small>
+                        <span>{{ trabajo.paciente or 'No especificado' }}</span>
+                    </div>
+                    <div class="col-sm-6 mb-3">
+                        <small class="text-muted d-block">Estado</small>
+                        {% set estado_clases = {'pendiente':'secondary','en_proceso':'primary','pulido':'primary','terminado':'success','entregado':'success'} %}
+                        <span class="badge bg-{{ estado_clases.get(trabajo.estado,'secondary') }} fs-6">
+                            {{ estado_labels.get(trabajo.estado, trabajo.estado) }}
+                        </span>
+                    </div>
+                    <div class="col-sm-4 mb-3">
+                        <small class="text-muted d-block">Fecha de pedido</small>
+                        <span>{{ trabajo.fecha_pedido.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                    <div class="col-sm-4 mb-3">
+                        <small class="text-muted d-block">Entrega estimada</small>
+                        <span>{{ trabajo.fecha_entrega_estimada.strftime('%d/%m/%Y') if trabajo.fecha_entrega_estimada else '—' }}</span>
+                    </div>
+                    <div class="col-sm-4 mb-3">
+                        <small class="text-muted d-block">Entrega real</small>
+                        <span class="{{ 'text-success fw-semibold' if trabajo.fecha_entrega_real else 'text-muted' }}">
+                            {{ trabajo.fecha_entrega_real.strftime('%d/%m/%Y') if trabajo.fecha_entrega_real else '—' }}
+                        </span>
+                    </div>
+                    {% if trabajo.observaciones %}
+                    <div class="col-12">
+                        <small class="text-muted d-block">Observaciones</small>
+                        <span>{{ trabajo.observaciones }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel lateral -->
+    <div class="col-md-4">
+        <!-- Precio -->
+        <div class="card shadow-sm mb-3 border-primary">
+            <div class="card-body text-center py-4">
+                <small class="text-muted">Precio del trabajo</small>
+                <div class="fs-2 fw-bold text-primary">S/ {{ '%.2f'|format(trabajo.precio) }}</div>
+            </div>
+        </div>
+
+        <!-- Cambiar estado -->
+        {% if trabajo.estado != 'entregado' %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold">Cambiar estado</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('trabajos.cambiar_estado', id=trabajo.id) }}">
+                    <select name="estado" class="form-select mb-2">
+                        {% set estado_simple = 'entregado' if trabajo.estado in ('terminado','entregado') else ('en_proceso' if trabajo.estado in ('en_proceso','pulido') else 'pendiente') %}
+                        {% for val, label in [('pendiente','Recibido'),('en_proceso','En proceso'),('entregado','Finalizado')] %}
+                        <option value="{{ val }}" {{ 'selected' if estado_simple == val }}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-arrow-repeat me-1"></i>Actualizar estado
+                    </button>
+                </form>
+                {% if estado_siguiente %}
+                <form method="POST" action="{{ url_for('trabajos.cambiar_estado', id=trabajo.id) }}" class="mt-2">
+                    <input type="hidden" name="estado" value="{{ estado_siguiente }}">
+                    {% set sig_labels = {'en_proceso':'Avanzar a: En proceso','entregado':'Marcar como Finalizado'} %}
+                    <button type="submit" class="btn btn-outline-success w-100">
+                        <i class="bi bi-arrow-right-circle me-1"></i>{{ sig_labels.get(estado_siguiente, estado_siguiente) }}
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal confirmar eliminación -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Eliminar trabajo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-1">¿Estás seguro de que quieres eliminar el trabajo <strong>{{ trabajo.codigo }}</strong>?</p>
+                <p class="text-muted small mb-0">Esta acción también eliminará los pagos asociados y no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{{ url_for('trabajos.eliminar', id=trabajo.id) }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Sí, eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

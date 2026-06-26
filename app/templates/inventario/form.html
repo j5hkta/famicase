@@ -1,0 +1,58 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if material else 'Nuevo' }} Material — FamiCase{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('inventario.lista') }}" class="btn btn-sm btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h4 class="mb-0 fw-bold">
+        <i class="bi bi-box-seam me-2 text-primary"></i>
+        {{ 'Editar Material' if material else 'Nuevo Material' }}
+    </h4>
+</div>
+
+<div class="card shadow-sm" style="max-width: 500px;">
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="nombre"
+                       value="{{ material.nombre if material else '' }}"
+                       placeholder="Ej: Zirconio" required>
+            </div>
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label fw-semibold">Stock actual</label>
+                    <input type="number" step="0.01" min="0" class="form-control" name="stock"
+                           value="{{ material.stock if material else '0' }}" placeholder="0">
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-semibold">Unidad <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="unidad"
+                           value="{{ material.unidad if material else '' }}"
+                           placeholder="bloques, g, kg, unid..." required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Stock mínimo</label>
+                    <input type="number" step="0.01" min="0" class="form-control" name="stock_minimo"
+                           value="{{ material.stock_minimo if material else '0' }}" placeholder="0">
+                    <div class="form-text">Se mostrará alerta cuando el stock baje de este valor.</div>
+                </div>
+            </div>
+            <div class="mb-4 mt-3">
+                <label class="form-label fw-semibold">Proveedor</label>
+                <input type="text" class="form-control" name="proveedor"
+                       value="{{ material.proveedor or '' if material else '' }}"
+                       placeholder="Nombre del proveedor (opcional)">
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>{{ 'Actualizar' if material else 'Guardar' }}
+                </button>
+                <a href="{{ url_for('inventario.lista') }}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

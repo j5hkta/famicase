@@ -1,0 +1,136 @@
+﻿{% extends 'portal/base.html' %}
+{% block title %}Solicitar Trabajo — FamiCase{% endblock %}
+
+{% block content %}
+<div class="pt-3">
+    <div class="portal-section-title">Solicitar trabajo</div>
+
+    <form method="POST" id="formSolicitar" novalidate>
+
+        <!-- Tarjeta 1: Selector de tipo -->
+        <div class="portal-card mb-3 fade-in">
+            <div class="px-3 pt-3 pb-1">
+                <div style="font-size:.8rem; font-weight:600; color:var(--p-text); margin-bottom:.75rem;">
+                    <i class="bi bi-tooth me-2" style="color:var(--p-blue);"></i>Tipo de trabajo
+                </div>
+
+                <!-- Grid de tipos seleccionables -->
+                <div class="row g-2 tipo-grid mb-2" id="tiposGrid">
+                    {% for t in tipos %}
+                    <div class="col-4">
+                        <div class="tipo-card" onclick="selectTipo({{ t.id }}, {{ t.precio_base }}, this)"
+                             data-id="{{ t.id }}">
+                            <div class="tc-icon">
+                                {% if t.complejidad == 'complejo' %}
+                                <i class="bi bi-gem" style="color:#2563eb;"></i>
+                                {% else %}
+                                <i class="bi bi-tools" style="color:#64748b;"></i>
+                                {% endif %}
+                            </div>
+                            <div class="tc-name">{{ t.nombre }}</div>
+                            <div class="tc-price">S/ {{ t.precio_base|int }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="tipo_trabajo_id" id="tipoId" required>
+                <div id="tipoError" class="text-danger" style="font-size:.75rem; display:none; margin-bottom:.5rem;">
+                    Selecciona un tipo de trabajo.
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 2: Información básica -->
+        <div class="portal-card mb-3 fade-in delay-1">
+            <div class="px-3 py-3">
+                <div style="font-size:.8rem; font-weight:600; color:var(--p-text); margin-bottom:.85rem;">
+                    <i class="bi bi-person me-2" style="color:var(--p-blue);"></i>Datos del paciente
+                </div>
+
+                <div class="mb-3">
+                    <label class="portal-label">Nombre del paciente</label>
+                    <input type="text" name="paciente" class="form-control portal-input"
+                           placeholder="Ej: María Torres (opcional)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Información comercial -->
+        <div class="portal-card mb-3 fade-in delay-2">
+            <div class="px-3 py-3">
+                <div style="font-size:.8rem; font-weight:600; color:var(--p-text); margin-bottom:.85rem;">
+                    <i class="bi bi-cash-coin me-2" style="color:var(--p-blue);"></i>Fechas y precio
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="portal-label">Fecha del pedido <span class="text-danger">*</span></label>
+                        <input type="date" name="fecha_pedido" class="form-control portal-input"
+                               value="{{ hoy }}" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="portal-label">Entrega acordada</label>
+                        <input type="date" name="fecha_entrega_estimada" class="form-control portal-input">
+                    </div>
+                </div>
+                <div>
+                    <label class="portal-label">Precio acordado (S/)</label>
+                    <input type="number" step="0.01" min="0" name="precio" id="inputPrecio"
+                           class="form-control portal-input" placeholder="Se completa al seleccionar tipo">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 4: Indicaciones -->
+        <div class="portal-card mb-4 fade-in delay-3">
+            <div class="px-3 py-3">
+                <div style="font-size:.8rem; font-weight:600; color:var(--p-text); margin-bottom:.85rem;">
+                    <i class="bi bi-chat-left-text me-2" style="color:var(--p-blue);"></i>Indicaciones especiales
+                </div>
+                <textarea name="observaciones" class="form-control portal-input"
+                          rows="4" style="resize:none; min-height:110px;"
+                          placeholder="Color, forma, materiales especiales, número de piezas, instrucciones..."></textarea>
+            </div>
+        </div>
+
+        <!-- Botón enviar -->
+        <button type="submit" class="btn portal-button primary w-100 mb-3 fade-in delay-4">
+            <i class="bi bi-send me-2"></i>Registrar pedido
+        </button>
+    </form>
+
+    <!-- Nota informativa -->
+    <div class="d-flex align-items-start gap-2 mb-3 fade-in delay-4"
+         style="background:#eff6ff; border-radius:12px; padding:.75rem 1rem; font-size:.75rem; color:#2563eb;">
+        <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+        <span>Registra aquí el trabajo que coordinaste con el laboratorio por llamada o WhatsApp. Aparecerá en el sistema de inmediato.</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectTipo(id, precio, el) {
+    // Quitar selección previa
+    document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
+    // Seleccionar la actual
+    el.classList.add('selected');
+    // Guardar en hidden input
+    document.getElementById('tipoId').value = id;
+    document.getElementById('tipoError').style.display = 'none';
+    // Pre-rellenar precio si está vacío
+    const inp = document.getElementById('inputPrecio');
+    if (!inp.value) {
+        inp.value = parseFloat(precio).toFixed(2);
+    }
+}
+
+document.getElementById('formSolicitar').addEventListener('submit', function(e) {
+    if (!document.getElementById('tipoId').value) {
+        e.preventDefault();
+        document.getElementById('tipoError').style.display = 'block';
+        document.getElementById('tiposGrid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+});
+</script>
+{% endblock %}

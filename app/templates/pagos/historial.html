@@ -1,0 +1,53 @@
+﻿{% extends 'base.html' %}
+{% block title %}Historial de Pagos — FamiCase{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('pagos.lista') }}" class="btn btn-sm btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h4 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i>Historial de Pagos</h4>
+    <a href="{{ url_for('pagos.nuevo') }}" class="btn btn-primary btn-sm ms-auto">
+        <i class="bi bi-plus-lg me-1"></i>Registrar pago
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table id="tablaHistorial" class="table table-hover w-100">
+            <thead class="table-light">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Odontólogo</th>
+                    <th>Método</th>
+                    <th>Trabajo</th>
+                    <th>Observaciones</th>
+                    <th class="text-end">Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pagos %}
+                <tr>
+                    <td>{{ p.fecha_pago.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ p.odontologo.nombre }}</td>
+                    <td><span class="badge bg-info text-dark">{{ metodo_labels.get(p.metodo, p.metodo) }}</span></td>
+                    <td>{{ p.trabajo.codigo if p.trabajo else '—' }}</td>
+                    <td>{{ p.observaciones or '—' }}</td>
+                    <td class="text-end fw-semibold text-success">S/ {{ '%.2f'|format(p.monto) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No hay pagos registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    initDataTable('#tablaHistorial', { order: [[0, 'desc']] });
+</script>
+{% endblock %}

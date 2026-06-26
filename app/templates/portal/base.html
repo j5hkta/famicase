@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}FamiCase{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="portal-body">
+
+    <!-- Header compacto -->
+    <header class="portal-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="ph-brand">FamiCase</div>
+                <div class="ph-name">{{ o.nombre }}</div>
+                {% if o.clinica %}<div class="ph-clinic">{{ o.clinica }}</div>{% endif %}
+            </div>
+            <a href="{{ url_for('portal.logout') }}" class="ph-logout" title="Cerrar sesión">
+                <i class="bi bi-box-arrow-right fs-5"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- Contenido -->
+    <div class="portal-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+            <div class="alert portal-alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Navegación inferior flotante -->
+    <nav class="portal-nav">
+        <a href="{{ url_for('portal.dashboard') }}"
+           class="pn-item {{ 'active' if request.endpoint == 'portal.dashboard' }}">
+            <i class="bi bi-house{{ '-fill' if request.endpoint == 'portal.dashboard' }}"></i>
+            <span>Inicio</span>
+        </a>
+        <a href="{{ url_for('portal.mis_trabajos') }}"
+           class="pn-item {{ 'active' if request.endpoint == 'portal.mis_trabajos' }}">
+            <i class="bi bi-clipboard2-check{{ '-fill' if request.endpoint == 'portal.mis_trabajos' }}"></i>
+            <span>Trabajos</span>
+        </a>
+        <a href="{{ url_for('portal.solicitar_trabajo') }}" class="pn-center" title="Solicitar trabajo">
+            <i class="bi bi-plus-lg"></i>
+        </a>
+        <a href="{{ url_for('portal.mi_saldo') }}"
+           class="pn-item {{ 'active' if request.endpoint == 'portal.mi_saldo' }}">
+            <i class="bi bi-wallet{{ '2' if request.endpoint != 'portal.mi_saldo' else '-fill' if false }}"></i>
+            <span>Saldo</span>
+        </a>
+        <a href="{{ url_for('portal.calendario') }}"
+           class="pn-item {{ 'active' if request.endpoint == 'portal.calendario' }}">
+            <i class="bi bi-calendar3{{ '-fill' if false }}"></i>
+            <span>Agenda</span>
+        </a>
+    </nav>
+
+    <!-- Botón flotante WhatsApp -->
+    <a href="https://wa.me/51990469653" target="_blank" rel="noopener"
+       style="position:fixed; bottom:88px; right:16px; z-index:1100;
+              width:50px; height:50px; border-radius:50%;
+              background:#25d366; display:flex; align-items:center; justify-content:center;
+              box-shadow: 0 4px 16px rgba(37,211,102,.5); text-decoration:none;">
+        <i class="bi bi-whatsapp" style="color:#fff; font-size:1.45rem;"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+    <script>
+    // Auto-cerrar alerts después de 4s
+    setTimeout(() => {
+        document.querySelectorAll('.portal-alert.show').forEach(el => {
+            bootstrap.Alert.getOrCreateInstance(el).close();
+        });
+    }, 4000);
+    </script>
+</body>
+</html>

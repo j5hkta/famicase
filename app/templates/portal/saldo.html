@@ -1,0 +1,116 @@
+﻿{% extends 'portal/base.html' %}
+{% block title %}Mi Saldo — FamiCase{% endblock %}
+
+{% block content %}
+<div class="pt-3">
+
+    <!-- Tarjeta principal de saldo -->
+    <div class="saldo-card {{ 'deuda' if saldo > 0 else 'ok' }} mb-4 fade-in">
+        <div style="font-size:.72rem; opacity:.7; text-transform:uppercase; letter-spacing:.06em; font-weight:600;">
+            Saldo pendiente
+        </div>
+        <div style="font-size:2.6rem; font-weight:700; line-height:1.1; margin:.4rem 0;">
+            S/ {{ '%.2f'|format(saldo) }}
+        </div>
+        {% if saldo > 0 %}
+        <div style="font-size:.8rem; opacity:.8;">
+            <i class="bi bi-exclamation-circle me-1"></i>
+            Coordina el pago con el laboratorio
+        </div>
+        {% else %}
+        <div style="font-size:.8rem; opacity:.8;">
+            <i class="bi bi-check-circle me-1"></i>
+            ¡Estás al día! Sin deuda pendiente
+        </div>
+        {% endif %}
+
+        <!-- Desglose -->
+        <div class="d-flex gap-3 mt-3 pt-3" style="border-top:1px solid rgba(255,255,255,.2);">
+            <div>
+                <div style="font-size:.68rem; opacity:.65; font-weight:500;">Total trabajos</div>
+                <div style="font-size:1rem; font-weight:700;">S/ {{ '%.2f'|format(total_trabajos) }}</div>
+            </div>
+            <div style="width:1px; background:rgba(255,255,255,.2);"></div>
+            <div>
+                <div style="font-size:.68rem; opacity:.65; font-weight:500;">Total pagado</div>
+                <div style="font-size:1rem; font-weight:700;">S/ {{ '%.2f'|format(total_pagado) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trabajos -->
+    <div class="portal-section-title">Trabajos realizados</div>
+    {% if trabajos %}
+    <div class="portal-card mb-4 fade-in delay-1">
+        {% for t in trabajos %}
+        {% set estado_colores = {'pendiente':'#94a3b8','en_proceso':'#2563eb','pulido':'#d97706','terminado':'#059669','entregado':'#16a34a'} %}
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 {{ 'border-top' if not loop.first }}">
+            <div style="min-width:0;">
+                <div class="fw-semibold text-truncate" style="font-size:.85rem; max-width:200px;">
+                    {{ t.tipo_trabajo.nombre }}
+                </div>
+                <div style="font-size:.72rem; color:var(--p-muted);">
+                    {{ t.codigo }} · {{ t.fecha_pedido.strftime('%d/%m/%Y') }}
+                </div>
+            </div>
+            <div class="text-end ms-2 flex-shrink-0">
+                <div class="fw-bold" style="font-size:.9rem; color:var(--p-text);">
+                    S/ {{ '%.2f'|format(t.precio) }}
+                </div>
+                <div style="font-size:.65rem; font-weight:600; color:{{ estado_colores.get(t.estado,'#64748b') }};">
+                    {{ {'pendiente':'Pendiente','en_proceso':'En proceso','pulido':'Pulido','terminado':'Listo','entregado':'Entregado'}.get(t.estado) }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="portal-card mb-4 fade-in delay-1">
+        <div class="text-center py-4" style="font-size:.85rem; color:var(--p-muted);">Sin trabajos registrados.</div>
+    </div>
+    {% endif %}
+
+    <!-- Pagos -->
+    {% if pagos %}
+    <div class="portal-section-title">Historial de pagos</div>
+    <div class="portal-card mb-3 fade-in delay-2">
+        {% for p in pagos %}
+        {% set metodo_icons = {'efectivo':'cash','transferencia':'bank','yape':'phone','plin':'phone-fill'} %}
+        {% set metodo_colors = {'efectivo':'#059669','transferencia':'#2563eb','yape':'#7c3aed','plin':'#0ea5e9'} %}
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 {{ 'border-top' if not loop.first }}">
+            <div class="d-flex align-items-center gap-2">
+                <div style="width:36px;height:36px;border-radius:10px;
+                            background:{{ metodo_colors.get(p.metodo,'#64748b') }}18;
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="bi bi-{{ metodo_icons.get(p.metodo,'cash') }}"
+                       style="color:{{ metodo_colors.get(p.metodo,'#64748b') }}; font-size:1rem;"></i>
+                </div>
+                <div>
+                    <div class="fw-semibold" style="font-size:.83rem;">
+                        {{ {'efectivo':'Efectivo','transferencia':'Transferencia','yape':'Yape','plin':'Plin'}.get(p.metodo, p.metodo) }}
+                    </div>
+                    <div style="font-size:.7rem; color:var(--p-muted);">
+                        {{ p.fecha_pago.strftime('%d/%m/%Y') }}
+                        {% if p.trabajo %}· {{ p.trabajo.codigo }}{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="fw-bold" style="font-size:.95rem; color:var(--p-green);">
+                S/ {{ '%.2f'|format(p.monto) }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Contacto para pago -->
+    <div class="d-flex align-items-center gap-2 mb-3 fade-in delay-3"
+         style="background:#f0fdf4; border-radius:12px; padding:.75rem 1rem; font-size:.78rem; color:#16a34a;">
+        <i class="bi bi-whatsapp fs-5 flex-shrink-0"></i>
+        <span>Para realizar un pago yapea o comunícate con Santa al
+            <a href="https://wa.me/51990469653" target="_blank" rel="noopener"
+               style="color:#16a34a; font-weight:700;">990 469 653</a>
+        </span>
+    </div>
+</div>
+{% endblock %}

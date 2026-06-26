@@ -1,0 +1,94 @@
+﻿{% extends 'base.html' %}
+{% block title %}Trabajos — FamiCase{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold"><i class="bi bi-clipboard2-check me-2 text-primary"></i>Trabajos</h4>
+    <a href="{{ url_for('trabajos.nuevo') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Nuevo trabajo
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-sm-4">
+                <label class="form-label small text-muted mb-1">Estado</label>
+                <select name="estado" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Todos los estados</option>
+                    {% for val, label in [('pendiente','Recibido'),('en_proceso','En proceso'),('entregado','Finalizado')] %}
+                    <option value="{{ val }}" {{ 'selected' if estado_filtro == val }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-4">
+                <label class="form-label small text-muted mb-1">Odontólogo</label>
+                <select name="odontologo_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Todos los odontólogos</option>
+                    {% for o in odontologos %}
+                    <option value="{{ o.id }}" {{ 'selected' if odontologo_filtro == o.id|string }}>{{ o.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-4">
+                <a href="{{ url_for('trabajos.lista') }}" class="btn btn-sm btn-outline-secondary w-100">
+                    <i class="bi bi-x-circle me-1"></i>Limpiar filtros
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table id="tablaTrabajos" class="table table-hover w-100">
+            <thead class="table-light">
+                <tr>
+                    <th>Código</th>
+                    <th>Odontólogo</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th>Entrega estimada</th>
+                    <th class="text-end">Precio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set estado_clases = {'pendiente':'secondary','en_proceso':'primary','pulido':'primary','terminado':'success','entregado':'success'} %}
+                {% for t in trabajos %}
+                <tr>
+                    <td><span class="badge bg-secondary">{{ t.codigo }}</span></td>
+                    <td>{{ t.odontologo.nombre }}</td>
+                    <td>{{ t.tipo_trabajo.nombre }}</td>
+                    <td>
+                        <span class="badge bg-{{ estado_clases.get(t.estado,'secondary') }}">
+                            {{ estado_labels.get(t.estado, t.estado) }}
+                        </span>
+                    </td>
+                    <td>{{ t.fecha_entrega_estimada.strftime('%d/%m/%Y') if t.fecha_entrega_estimada else '—' }}</td>
+                    <td class="text-end fw-semibold">S/ {{ '%.2f'|format(t.precio) }}</td>
+                    <td>
+                        <a href="{{ url_for('trabajos.detalle', id=t.id) }}" class="btn btn-sm btn-outline-primary" title="Ver detalle">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-4 d-block mb-2"></i>No hay trabajos registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    initDataTable('#tablaTrabajos', { order: [[0, 'desc']] });
+</script>
+{% endblock %}

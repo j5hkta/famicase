@@ -1,0 +1,135 @@
+﻿{% extends 'portal/base.html' %}
+{% block title %}Inicio — FamiCase{% endblock %}
+
+{% block content %}
+{% set pendientes_list  = trabajos_activos | selectattr('estado','equalto','pendiente')  | list %}
+{% set en_proceso_list  = trabajos_activos | selectattr('estado','in',['en_proceso','pulido']) | list %}
+{% set terminados_list  = trabajos_activos | selectattr('estado','equalto','terminado') | list %}
+
+<div class="pt-3">
+
+    <!-- Grid de estadísticas 2x2 -->
+    <div class="portal-section-title">Resumen</div>
+    <div class="row g-2 mb-3">
+        <div class="col-6">
+            <div class="portal-card portal-stat fade-in">
+                <div class="ps-icon" style="background:#eff6ff;">
+                    <i class="bi bi-clipboard2-check" style="color:#2563eb;"></i>
+                </div>
+                <div class="ps-num">{{ trabajos_activos|length }}</div>
+                <div class="ps-label">Trabajos activos</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="portal-card portal-stat fade-in delay-1">
+                <div class="ps-icon" style="background:#fffbeb;">
+                    <i class="bi bi-hourglass-split" style="color:#d97706;"></i>
+                </div>
+                <div class="ps-num">{{ pendientes_list|length }}</div>
+                <div class="ps-label">Pendientes</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="portal-card portal-stat fade-in delay-2">
+                <div class="ps-icon" style="background:#ecfdf5;">
+                    <i class="bi bi-check-circle" style="color:#059669;"></i>
+                </div>
+                <div class="ps-num">{{ terminados_list|length }}</div>
+                <div class="ps-label">Listos p/ recoger</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="portal-card portal-stat fade-in delay-3">
+                <div class="ps-icon" style="background:{% if saldo > 0 %}#fef2f2{% else %}#ecfdf5{% endif %};">
+                    <i class="bi bi-wallet2" style="color:{% if saldo > 0 %}#dc2626{% else %}#059669{% endif %};"></i>
+                </div>
+                <div class="ps-num" style="font-size:1.25rem; color:{% if saldo > 0 %}#dc2626{% else %}#059669{% endif %};">
+                    S/{{ '%.0f'|format(saldo) }}
+                </div>
+                <div class="ps-label">Saldo pendiente</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Próximas entregas -->
+    {% if proximas_entregas %}
+    <div class="portal-section-title">Próximas entregas</div>
+    <div class="portal-card mb-3 fade-in delay-2">
+        {% for t in proximas_entregas %}
+        <div class="px-3 py-2 {{ 'd-flex justify-content-between align-items-center' }} {{ 'border-top' if not loop.first }}">
+            <div style="min-width:0;">
+                <div class="fw-semibold" style="font-size:.88rem; color:var(--p-text);">{{ t.tipo_trabajo.nombre }}</div>
+                <div style="font-size:.73rem; color:var(--p-muted);">
+                    {{ t.codigo }}{% if t.paciente %} · {{ t.paciente }}{% endif %}
+                </div>
+            </div>
+            <div class="text-end ms-2 flex-shrink-0">
+                {% set dias = (t.fecha_entrega_estimada - hoy).days %}
+                <div class="fw-bold" style="font-size:.82rem;
+                    color:{% if dias < 0 %}#dc2626{% elif dias <= 2 %}#d97706{% else %}#059669{% endif %};">
+                    {% if dias < 0 %}¡Atrasado!
+                    {% elif dias == 0 %}Hoy
+                    {% elif dias == 1 %}Mañana
+                    {% else %}{{ t.fecha_entrega_estimada.strftime('%d/%m') }}
+                    {% endif %}
+                </div>
+                <span class="portal-badge {{ estado_clases.get(t.estado, 'pendiente') }}">{{ estado_labels.get(t.estado) }}</span>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="px-3 py-2 border-top">
+            <a href="{{ url_for('portal.calendario') }}"
+               class="d-flex align-items-center gap-1 text-decoration-none"
+               style="font-size:.8rem; color:var(--p-blue); font-weight:600;">
+                <i class="bi bi-calendar3"></i> Ver agenda completa
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="portal-card mb-3 fade-in delay-2">
+        <div class="text-center py-4">
+            <i class="bi bi-inbox" style="font-size:2rem; color:#cbd5e1; display:block; margin-bottom:.5rem;"></i>
+            <div style="font-size:.85rem; color:var(--p-muted);">No tienes trabajos activos</div>
+            <a href="{{ url_for('portal.solicitar_trabajo') }}"
+               class="btn portal-button primary mt-3 px-4"
+               style="padding:.6rem 1.2rem !important; font-size:.85rem !important;">
+                <i class="bi bi-plus me-1"></i>Solicitar trabajo
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Trabajos listos para recoger -->
+    {% if terminados_list %}
+    <div class="portal-card mb-3 fade-in delay-3" style="border-left: 3px solid var(--p-green);">
+        <div class="px-3 py-2 d-flex align-items-center gap-2">
+            <i class="bi bi-check-circle-fill" style="color:var(--p-green); font-size:1.2rem;"></i>
+            <div>
+                <div class="fw-semibold" style="font-size:.88rem;">
+                    {{ terminados_list|length }} trabajo{{ 's' if terminados_list|length > 1 }} listo{{ 's' if terminados_list|length > 1 }} para recoger
+                </div>
+                <div style="font-size:.73rem; color:var(--p-muted);">Comunícate con el laboratorio</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Contacto -->
+    <div class="portal-card fade-in delay-4" style="background: linear-gradient(135deg,#1e293b,#0f172a); color:#fff;">
+        <div class="px-3 py-3">
+            <div style="font-size:.7rem; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.05em;">Laboratorio Dental</div>
+            <div class="fw-bold mt-1" style="font-size:.9rem;">Oscar &amp; Santa Loayza</div>
+            <div class="mt-1" style="font-size:.78rem; color:rgba(255,255,255,.7);">
+                <i class="bi bi-whatsapp me-1" style="color:#25d366;"></i>
+                <a href="https://wa.me/51990469653" target="_blank" rel="noopener"
+                   style="color:rgba(255,255,255,.85); text-decoration:none;">990 469 653</a>
+                <span class="text-muted ms-1" style="font-size:.7rem;">(Santa — Yape)</span>
+            </div>
+            <div style="font-size:.78rem; color:rgba(255,255,255,.7);">
+                <i class="bi bi-telephone me-1"></i>988 880 196
+                <span class="text-muted ms-1" style="font-size:.7rem;">(Oscar)</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends 'portal/base.html' %}
+{% block title %}Agenda — FamiCase{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css' rel='stylesheet'>
+<style>
+    .fc .fc-toolbar-title { font-size:.95rem !important; font-weight:700; color:#1e293b; }
+    .fc .fc-button {
+        font-size:.75rem !important;
+        padding:.3rem .6rem !important;
+        border-radius:8px !important;
+        background: #f1f5f9 !important;
+        border-color: #e2e8f0 !important;
+        color: #64748b !important;
+        font-weight:600 !important;
+    }
+    .fc .fc-button:hover { background:#e2e8f0 !important; }
+    .fc .fc-button-active { background:var(--p-blue) !important; color:#fff !important; border-color:var(--p-blue) !important; }
+    .fc .fc-event {
+        font-size:.68rem !important;
+        border-radius:6px !important;
+        padding:2px 5px !important;
+        font-weight:600 !important;
+        border:none !important;
+        cursor:pointer !important;
+    }
+    .fc th { font-size:.72rem !important; font-weight:600; color:#64748b; }
+    .fc td { font-size:.8rem !important; }
+    .fc .fc-daygrid-day-number { font-size:.78rem !important; }
+    .fc .fc-daygrid-day.fc-day-today { background:#eff6ff !important; }
+    .fc .fc-daygrid-day { cursor:pointer; }
+    #calendar-wrap {
+        background:#fff;
+        border-radius:16px;
+        padding:.85rem;
+        box-shadow: 0 2px 16px rgba(37,99,235,.1);
+    }
+    #panel-fecha {
+        display:none;
+        border-radius:16px;
+        background:#fff;
+        box-shadow: 0 2px 16px rgba(37,99,235,.12);
+        overflow:hidden;
+    }
+    .panel-fecha-header {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        padding:.7rem 1rem;
+        color:#fff;
+    }
+    .panel-fecha-header .fecha-titulo {
+        font-size:.88rem; font-weight:700;
+    }
+    .panel-fecha-header .fecha-sub {
+        font-size:.72rem; opacity:.8;
+    }
+    .panel-item {
+        padding:.65rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .panel-item:last-child { border-bottom:none; }
+    .panel-item .pi-tipo { font-size:.85rem; font-weight:600; color:#1e293b; }
+    .panel-item .pi-meta { font-size:.72rem; color:#64748b; }
+    .panel-dot {
+        width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:4px;
+    }
+    .fc-day-past-custom { opacity: .55; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pt-3">
+
+    <!-- Leyenda -->
+    <div class="d-flex gap-3 mb-3 fade-in" style="flex-wrap:wrap;">
+        <div class="d-flex align-items-center gap-1" style="font-size:.72rem; font-weight:600;">
+            <div style="width:10px;height:10px;border-radius:3px;background:#6366f1;"></div>
+            <span style="color:var(--p-muted);">Recibido</span>
+        </div>
+        <div class="d-flex align-items-center gap-1" style="font-size:.72rem; font-weight:600;">
+            <div style="width:10px;height:10px;border-radius:3px;background:#2563eb;"></div>
+            <span style="color:var(--p-muted);">En proceso</span>
+        </div>
+        <div class="d-flex align-items-center gap-1" style="font-size:.72rem; font-weight:600;">
+            <div style="width:10px;height:10px;border-radius:3px;background:#10b981;"></div>
+            <span style="color:var(--p-muted);">Finalizado</span>
+        </div>
+        <div class="d-flex align-items-center gap-1" style="font-size:.72rem; font-weight:600;">
+            <div style="width:10px;height:10px;border-radius:3px;background:#cbd5e1;"></div>
+            <span style="color:var(--p-muted);">Otros doctores</span>
+        </div>
+    </div>
+
+    <!-- Calendario -->
+    <div id="calendar-wrap" class="mb-3 fade-in delay-1">
+        <div id="calendar"></div>
+    </div>
+
+    <!-- Panel detalle de fecha (oculto hasta hacer click) -->
+    <div id="panel-fecha" class="mb-3 fade-in">
+        <div class="panel-fecha-header d-flex justify-content-between align-items-start">
+            <div>
+                <div class="fecha-titulo" id="panel-fecha-titulo">—</div>
+                <div class="fecha-sub" id="panel-fecha-sub">Trabajos a entregar este día</div>
+            </div>
+            <button onclick="cerrarPanel()" style="background:none;border:none;color:rgba(255,255,255,.7);font-size:1.1rem;cursor:pointer;padding:0;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div id="panel-fecha-lista"></div>
+    </div>
+
+    <!-- Mis próximas entregas -->
+    <div class="portal-section-title">Mis entregas programadas</div>
+    {% if trabajos %}
+    <div class="portal-card mb-3 fade-in delay-2">
+        {% for t in trabajos %}
+        {% set dias = (t.fecha_entrega_estimada - hoy).days if t.fecha_entrega_estimada else None %}
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 {{ 'border-top' if not loop.first }}">
+            <div>
+                <div class="fw-semibold" style="font-size:.85rem; color:var(--p-text);">
+                    {{ t.tipo_trabajo.nombre }}
+                </div>
+                <div style="font-size:.72rem; color:var(--p-muted);">
+                    {{ t.codigo }}{% if t.paciente %} · {{ t.paciente }}{% endif %}
+                </div>
+            </div>
+            <div class="text-end ms-2 flex-shrink-0">
+                <div class="fw-bold" style="font-size:.82rem;
+                    color:{% if dias is not none and dias < 0 %}#dc2626{% elif dias is not none and dias <= 2 %}#d97706{% else %}#059669{% endif %};">
+                    {% if dias is not none and dias < 0 %}¡Atrasado!
+                    {% elif dias == 0 %}Hoy
+                    {% elif dias == 1 %}Mañana
+                    {% elif dias is not none %}{{ t.fecha_entrega_estimada.strftime('%d/%m') }}
+                    {% else %}Sin fecha
+                    {% endif %}
+                </div>
+                <span class="portal-badge {{ estado_clases.get(t.estado, 'pendiente') }}" style="font-size:.62rem;">
+                    {{ estado_labels.get(t.estado) }}
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="portal-card fade-in delay-2">
+        <div class="text-center py-4" style="font-size:.85rem; color:var(--p-muted);">
+            <i class="bi bi-calendar3" style="font-size:1.8rem; display:block; margin-bottom:.5rem; color:#cbd5e1;"></i>
+            No tienes entregas programadas.
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Aviso -->
+    <div class="d-flex align-items-start gap-2 mb-3 fade-in delay-3"
+         style="background:#fffbeb; border-radius:12px; padding:.75rem 1rem; font-size:.75rem; color:#92400e;">
+        <i class="bi bi-lightbulb-fill flex-shrink-0 mt-1" style="color:#f59e0b;"></i>
+        <span>Los eventos grises son trabajos de otros doctores. Tócalos o presiona una fecha para ver el detalle.</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js'></script>
+<script>
+const eventos = {{ eventos | tojson }};
+
+function formatFechaES(isoDate) {
+    const p = isoDate.split('-');
+    const d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+    return d.toLocaleDateString('es-PE', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
+}
+
+function mostrarPanel(fechaISO) {
+    const evsDia = eventos.filter(e => e.start === fechaISO);
+    const panel = document.getElementById('panel-fecha');
+    const titulo = document.getElementById('panel-fecha-titulo');
+    const lista  = document.getElementById('panel-fecha-lista');
+
+    titulo.textContent = formatFechaES(fechaISO);
+
+    if (evsDia.length === 0) {
+        lista.innerHTML = `
+            <div class="text-center py-4" style="font-size:.82rem; color:#94a3b8;">
+                <i class="bi bi-calendar3" style="font-size:1.5rem; display:block; margin-bottom:.4rem;"></i>
+                No hay trabajos programados para este día
+            </div>`;
+    } else {
+        lista.innerHTML = evsDia.map(e => {
+            const mio = e.extendedProps.mio;
+            const metaParts = [];
+            if (mio) {
+                if (e.extendedProps.paciente) metaParts.push(e.extendedProps.paciente);
+                metaParts.push(e.extendedProps.estado);
+            } else {
+                metaParts.push(e.extendedProps.doctor);
+            }
+            return `
+            <div class="panel-item d-flex align-items-start gap-2">
+                <div class="panel-dot mt-1" style="background:${e.color};"></div>
+                <div>
+                    <div class="pi-tipo">${e.title}</div>
+                    <div class="pi-meta">${metaParts.join(' · ')}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function cerrarPanel() {
+    document.getElementById('panel-fecha').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        headerToolbar: {
+            left: 'prev',
+            center: 'title',
+            right: 'next'
+        },
+        height: 'auto',
+        events: eventos,
+        dateClick: function(info) {
+            mostrarPanel(info.dateStr);
+        },
+        eventClick: function(info) {
+            info.jsEvent.preventDefault();
+            mostrarPanel(info.event.startStr);
+        },
+        dayCellClassNames: function(info) {
+            const hoy = new Date();
+            hoy.setHours(0,0,0,0);
+            return info.date < hoy ? ['fc-day-past-custom'] : [];
+        }
+    });
+
+    calendar.render();
+});
+</script>
+{% endblock %}
