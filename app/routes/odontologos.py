@@ -73,7 +73,8 @@ def detalle(id):
 
     total_trabajos = sum(t.precio for t in trabajos if t.precio)
     total_pagado = sum(p.monto for p in pagos if p.monto)
-    saldo = total_trabajos - total_pagado
+    saldo_inicial = o.saldo_inicial or 0
+    saldo = total_trabajos - total_pagado + saldo_inicial
 
     return render_template('odontologos/detalle.html',
         odontologo=o,
@@ -81,8 +82,23 @@ def detalle(id):
         pagos=pagos,
         total_trabajos=total_trabajos,
         total_pagado=total_pagado,
+        saldo_inicial=saldo_inicial,
         saldo=saldo
     )
+
+
+@odontologos_bp.route('/<int:id>/saldo-inicial', methods=['POST'])
+@login_required
+def ajustar_saldo_inicial(id):
+    o = Odontologo.query.get_or_404(id)
+    try:
+        monto = float(request.form.get('saldo_inicial', 0) or 0)
+        o.saldo_inicial = monto
+        db.session.commit()
+        flash(f'Saldo inicial de {o.nombre} actualizado a S/ {monto:.2f}.', 'success')
+    except ValueError:
+        flash('Monto inválido.', 'danger')
+    return redirect(url_for('odontologos.detalle', id=o.id))
 
 
 @odontologos_bp.route('/<int:id>/desactivar', methods=['POST'])

@@ -49,7 +49,7 @@
                     S/ {{ '%.2f'|format(saldo) }}
                 </div>
                 <hr>
-                <div class="row text-center">
+                <div class="row text-center mb-2">
                     <div class="col-6">
                         <div class="text-muted small">Total trabajos</div>
                         <div class="fw-semibold">S/ {{ '%.2f'|format(total_trabajos) }}</div>
@@ -59,9 +59,19 @@
                         <div class="fw-semibold text-success">S/ {{ '%.2f'|format(total_pagado) }}</div>
                     </div>
                 </div>
-                <a href="{{ url_for('pagos.nuevo') }}?odontologo_id={{ odontologo.id }}" class="btn btn-sm btn-success mt-3 w-100">
+                {% if saldo_inicial != 0 %}
+                <div class="text-center mb-2">
+                    <span class="badge bg-warning text-dark">
+                        Deuda anterior: S/ {{ '%.2f'|format(saldo_inicial) }}
+                    </span>
+                </div>
+                {% endif %}
+                <a href="{{ url_for('pagos.nuevo') }}?odontologo_id={{ odontologo.id }}" class="btn btn-sm btn-success w-100 mb-2">
                     <i class="bi bi-plus me-1"></i>Registrar pago
                 </a>
+                <button class="btn btn-sm btn-outline-secondary w-100" data-bs-toggle="modal" data-bs-target="#modalSaldoInicial">
+                    <i class="bi bi-pencil-square me-1"></i>Editar saldo anterior
+                </button>
             </div>
         </div>
     </div>
@@ -141,6 +151,39 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal saldo inicial -->
+<div class="modal fade" id="modalSaldoInicial" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i>Saldo anterior — {{ odontologo.nombre }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('odontologos.ajustar_saldo_inicial', id=odontologo.id) }}">
+                <div class="modal-body pt-2">
+                    <p class="text-muted small mb-3">
+                        Ingresa el monto que este doctor debía <strong>antes</strong> de empezar a usar FamiCase.
+                        Se sumará automáticamente al saldo. Pon <strong>0</strong> si no tiene deuda anterior.
+                    </p>
+                    <label class="form-label fw-semibold">Deuda anterior (S/)</label>
+                    <input type="number" step="0.01" min="0" name="saldo_inicial"
+                           class="form-control form-control-lg"
+                           value="{{ '%.2f'|format(saldo_inicial) }}"
+                           placeholder="0.00">
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>Guardar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

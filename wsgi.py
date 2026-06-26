@@ -12,6 +12,7 @@ with app.app_context():
     with db.engine.connect() as conn:
         for sql in [
             "ALTER TABLE odontologos ADD COLUMN pin_acceso VARCHAR(10)",
+            "ALTER TABLE odontologos ADD COLUMN saldo_inicial FLOAT DEFAULT 0.0",
             "ALTER TABLE trabajos ADD COLUMN hora_acordada VARCHAR(5)",
         ]:
             try:

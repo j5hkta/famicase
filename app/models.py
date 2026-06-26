@@ -30,6 +30,7 @@ class Odontologo(db.Model):
     direccion = db.Column(db.String(200))
     activo = db.Column(db.Boolean, default=True)
     pin_acceso = db.Column(db.String(10), nullable=True)
+    saldo_inicial = db.Column(db.Float, default=0.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     trabajos = db.relationship('Trabajo', backref='odontologo', lazy='dynamic')
@@ -38,7 +39,7 @@ class Odontologo(db.Model):
     def saldo_pendiente(self):
         total_trabajos = sum(t.precio for t in self.trabajos if t.precio)
         total_pagado = sum(p.monto for p in self.pagos if p.monto)
-        return total_trabajos - total_pagado
+        return total_trabajos - total_pagado + (self.saldo_inicial or 0)
 
 
 class TipoTrabajo(db.Model):
